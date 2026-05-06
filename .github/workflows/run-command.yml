@@ -1,0 +1,35 @@
+name: "🚀 اجرای فرمان و ذخیره خروجی"
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'فرمانی که میخوای اجرا بشه (مثال: ls -la)'
+        required: true
+        default: 'echo "سلام دنیا!"'
+
+jobs:
+  run-and-save:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 دریافت کد مخزن
+        uses: actions/checkout@v4
+
+      - name: ⚙️ اجرای فرمان و گرفتن خروجی
+        id: my_command
+        run: |
+          {
+            echo "COMMAND: ${{ github.event.inputs.command }}"
+            echo "========================================="
+            echo "OUTPUT:"
+            echo "========================================="
+            eval "${{ github.event.inputs.command }}"
+          } > output.txt
+
+      - name: 💾 ذخیره خروجی در مخزن
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output.txt
+          git diff --staged --quiet || git commit -m "ذخیره خروجی فرمان: ${{ github.event.inputs.command }}"
+          git push
